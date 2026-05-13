@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/json"
@@ -10,12 +10,12 @@ import (
 const configPath = "config.json"
 
 type Config struct {
-	Token            string       `json:token`
-	GuildID          snowflake.ID `json:guild_id`
-	WelcomeChannelID snowflake.ID `json:welcome_channel_id`
+	Token            string       `json:"token"`
+	GuildID          snowflake.ID `json:"guild_id"`
+	WelcomeChannelID snowflake.ID `json:"welcome_channel_id"`
 }
 
-func loadConfig() (*Config, error) {
+func LoadConfig() (*Config, error) {
 	file, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, err
