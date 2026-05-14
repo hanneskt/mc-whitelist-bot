@@ -3,6 +3,7 @@ module whitelistbot
 go 1.25.9
 
 require (
+	github.com/davidarkless/go-pterodactyl v0.1.0 // indirect
 	github.com/disgoorg/disgo v0.19.3 // indirect
 	github.com/disgoorg/godave v0.1.0 // indirect
 	github.com/disgoorg/json/v2 v2.0.0 // indirect
@@ -14,3 +15,5 @@ require (
 	golang.org/x/crypto v0.48.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
 )
+
+replace github.com/davidarkless/go-pterodactyl => ../go-pterodactyl

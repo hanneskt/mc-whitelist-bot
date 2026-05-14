@@ -18,6 +18,11 @@ type Config struct {
 	GuildID          snowflake.ID `json:"guild_id"`
 	WelcomeChannelID snowflake.ID `json:"welcome_channel_id"`
 	ServerName       string       `json:"server_name"`
+
+	PteroBaseURL string `json:"pterodactyl_base_url"`
+	PteroApiKey  string `json:"pterodactyl_api_key"`
+
+	PteroServerIdentifier string `json:"pterodactyl_server_identifier"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -63,6 +68,18 @@ func (c *Config) Validate() error {
 
 	if c.WelcomeChannelID == 0 {
 		errs = append(errs, errors.New("welcome_channel_id cannot be 0"))
+	}
+
+	if c.PteroBaseURL == "" {
+		errs = append(errs, errors.New("pterodactyl_base_url shouldn't be empty"))
+	}
+
+	if c.PteroApiKey == "" {
+		errs = append(errs, errors.New("pterodactyl_api_key shouldn't be empty"))
+	}
+
+	if c.PteroServerIdentifier == "" {
+		errs = append(errs, errors.New("pterodactyl_server_identifier shouldn't be empty"))
 	}
 
 	return errors.Join(errs...)

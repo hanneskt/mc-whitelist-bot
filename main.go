@@ -10,6 +10,7 @@ import (
 	"time"
 	"whitelistbot/config"
 	"whitelistbot/discord"
+	"whitelistbot/ptero"
 )
 
 func main() {
@@ -26,10 +27,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	pteroClient, err := ptero.New(*cfg, *logger)
+	if err != nil {
+		slog.Error("Failed to start Pterodactyl Client", "error", err)
+	}
+
 	// start bot
 	bot := discord.Bot{
-		Config: cfg,
-		Logger: logger,
+		Config:      cfg,
+		Logger:      logger,
+		PteroClient: pteroClient,
 	}
 
 	err = bot.Start()

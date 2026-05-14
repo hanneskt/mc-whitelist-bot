@@ -47,12 +47,24 @@ func WhitelistModal(serverName string) discord.ModalCreate {
 func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 	if e.Data.CustomID == "whitelist_form" {
 		name := e.Data.Text("minecraft_name")
+		if name == "" {
+			b.Logger.Error("Empty name")
+		}
 
-		err := e.CreateMessage(discord.MessageCreate{
+		err := b.PteroClient.WhitelistPlayer(name)
+		if err != nil {
+			b.Logger.Error("Could not whitelist player", "error", err)
+			e.CreateMessage(discord.MessageCreate{
+				Content: "Something went wrong whitelisting you :(",
+			})
+			return
+		}
+
+		err = e.CreateMessage(discord.MessageCreate{
 			Content: fmt.Sprintf("Hello %s, thanks for submitting the form!", name),
 		})
 		if err != nil {
-			slog.Error("Error replying to form submit", slog.Any("error", err))
+			b.Logger.Error("Error replying to form submit", slog.Any("error", err))
 		}
 	}
 }

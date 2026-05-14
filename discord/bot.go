@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"time"
 	"whitelistbot/config"
+	"whitelistbot/ptero"
 
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
@@ -18,13 +19,14 @@ type Bot struct {
 	Config *config.Config
 	Logger *slog.Logger
 
-	client *bot.Client
+	PteroClient *ptero.PteroClient
+	botClient   *bot.Client
 }
 
 func (b *Bot) Start() error {
 	var err error
 
-	b.client, err = disgo.New(b.Config.Token,
+	b.botClient, err = disgo.New(b.Config.Token,
 		bot.WithLogger(b.Logger),
 		bot.WithGatewayConfigOpts(
 			gateway.WithIntents(
@@ -44,12 +46,12 @@ func (b *Bot) Start() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err = b.client.OpenGateway(ctx); err != nil {
+	if err = b.botClient.OpenGateway(ctx); err != nil {
 		return fmt.Errorf("failed to connect to discord: %w", err)
 	}
 
 	// register commands
-	_, err = b.client.Rest.SetGuildCommands(b.client.ApplicationID, b.Config.GuildID, Commands())
+	_, err = b.botClient.Rest.SetGuildCommands(b.botClient.ApplicationID, b.Config.GuildID, Commands())
 	if err != nil {
 		b.Logger.Error("Error registering commands", "error", err)
 	} else {
@@ -60,9 +62,9 @@ func (b *Bot) Start() error {
 }
 
 func (b *Bot) Stop(ctx context.Context) {
-	if b.client != nil {
+	if b.botClient != nil {
 		b.Logger.Info("Shutting down bot client")
-		b.client.Close(ctx)
+		b.botClient.Close(ctx)
 	}
 }
 

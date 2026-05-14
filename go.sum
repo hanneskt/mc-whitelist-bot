@@ -1,3 +1,5 @@
+github.com/davidarkless/go-pterodactyl v0.1.0 h1:zZcjLq8PjVuy3RmHKWjpA8xGvwfnYjOjyqybwgeX2Xw=
+github.com/davidarkless/go-pterodactyl v0.1.0/go.mod h1:uARjv2bzSJht4QOOraelODzbxH3JvZkqC0LInk2WRT4=
 github.com/disgoorg/disgo v0.19.3 h1:kCfez2nkyXZCxQoaspvZbRNOuOIHWjOMjIhuZ6XOxUw=
 github.com/disgoorg/disgo v0.19.3/go.mod h1:NnV63iw4lJdF1fnV0gX27XR43ZgRGqnL122svRMTgTE=
 github.com/disgoorg/godave v0.1.0 h1:3g0Zqzz+zNaxQTVLfCnl5eZKGqZk6cM/JLLbMKCtZQQ=
