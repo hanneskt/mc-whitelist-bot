@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"os"
@@ -11,6 +12,8 @@ import (
 )
 
 func main() {
+	logger := slog.Default()
+
 	cfg, err := config.LoadConfig()
 	if err != nil {
 		if errors.Is(err, config.ErrConfigCreated) {
@@ -22,7 +25,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	discord.StartBot(cfg)
+	bot := discord.Bot{
+		Config: cfg,
+		Logger: logger,
+	}
+	client, err := bot.Start(cfg, logger)
+	if err != nil {
+		logger.Error("Bot failed to start", "error", err)
+		os.Exit(1)
+	}
+	defer client.Close(context.Background())
 
 	// Keep the application running until you press CTRL+C
 	s := make(chan os.Signal, 1)
