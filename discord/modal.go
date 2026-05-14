@@ -44,7 +44,7 @@ func WhitelistModal() discord.ModalCreate {
 	}
 }
 
-func (self *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
+func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 	if e.Data.CustomID == "whitelist_form" {
 		name := e.Data.Text("minecraft_name")
 

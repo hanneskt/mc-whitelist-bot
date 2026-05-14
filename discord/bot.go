@@ -17,48 +17,60 @@ import (
 type Bot struct {
 	Config *config.Config
 	Logger *slog.Logger
+
+	client *bot.Client
 }
 
-func (self *Bot) Start() (*bot.Client, error) {
-	client, err := disgo.New(self.Config.Token,
-		bot.WithLogger(self.Logger),
+func (b *Bot) Start() error {
+	var err error
+
+	b.client, err = disgo.New(b.Config.Token,
+		bot.WithLogger(b.Logger),
 		bot.WithGatewayConfigOpts(
 			gateway.WithIntents(
 				gateway.IntentGuilds,       // which guild
 				gateway.IntentGuildMembers, // join events
 			),
 		),
-		bot.WithEventListenerFunc(self.OnMemberJoin),
-		bot.WithEventListenerFunc(self.OnApplicationCommand),
-		bot.WithEventListenerFunc(self.OnModalSubmit),
+		bot.WithEventListenerFunc(b.OnMemberJoin),
+		bot.WithEventListenerFunc(b.OnApplicationCommand),
+		bot.WithEventListenerFunc(b.OnModalSubmit),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to initialize disgo client: %w", err)
+		return fmt.Errorf("failed to initialize disgo client: %w", err)
 	}
 
 	// open discord
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err = client.OpenGateway(ctx); err != nil {
-		return nil, fmt.Errorf("Failed to connect to discord: %w", err)
+
+	if err = b.client.OpenGateway(ctx); err != nil {
+		return fmt.Errorf("failed to connect to discord: %w", err)
 	}
 
 	// register commands
-	_, err = client.Rest.SetGuildCommands(client.ApplicationID, self.Config.GuildID, Commands())
+	_, err = b.client.Rest.SetGuildCommands(b.client.ApplicationID, b.Config.GuildID, Commands())
 	if err != nil {
-		self.Logger.Error("Error registering commands", "error", err)
+		b.Logger.Error("Error registering commands", "error", err)
 	} else {
-		self.Logger.Info("Successfully registered commands!")
+		b.Logger.Info("Successfully registered commands!")
 	}
 
-	return client, nil
+	return nil
 }
 
-func (self *Bot) OnMemberJoin(e *events.GuildMemberJoin) {
-	_, err := e.Client().Rest.CreateMessage(self.Config.WelcomeChannelID, discord.MessageCreate{
+func (b *Bot) Stop(ctx context.Context) {
+	if b.client != nil {
+		b.Logger.Info("Shutting down bot client")
+		b.client.Close(ctx)
+	}
+}
+
+func (b *Bot) OnMemberJoin(e *events.GuildMemberJoin) {
+	_, err := e.Client().Rest.CreateMessage(b.Config.WelcomeChannelID, discord.MessageCreate{
 		Content: fmt.Sprintf("Welcome to the server, <@%s>!", e.Member.User.ID),
 	})
 	if err != nil {
-		self.Logger.Error("Failed to send welcome message", "error", err)
+		b.Logger.Error("Failed to send welcome message", "error", err)
 	}
 }

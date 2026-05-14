@@ -20,8 +20,8 @@ func Commands() []discord.ApplicationCommandCreate {
 	}
 }
 
-func (self *Bot) OnApplicationCommand(e *events.ApplicationCommandInteractionCreate) {
-	slog.Info("Handling the command", "command", e.Data.CommandName())
+func (b *Bot) OnApplicationCommand(e *events.ApplicationCommandInteractionCreate) {
+	b.Logger.Info("Handling the command", "command", e.Data.CommandName())
 	switch e.Data.CommandName() {
 	case "form":
 		formCommand(e)
