@@ -2,10 +2,14 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 
 	"github.com/disgoorg/snowflake/v2"
 )
+
+var ErrConfigCreated = errors.New("config file created; please edit and restart")
 
 const configPath = "config.json"
 
@@ -16,15 +20,49 @@ type Config struct {
 }
 
 func LoadConfig() (*Config, error) {
+	var config Config
+
 	file, err := os.ReadFile(configPath)
+
+	// if there is no file, generate an empty config
 	if err != nil {
-		return nil, err
+		if errors.Is(err, os.ErrNotExist) {
+			emptyConfig, _ := json.MarshalIndent(config, "", "  ")
+
+			err = os.WriteFile(configPath, emptyConfig, 0600)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to write config: %w", err)
+			}
+			return nil, ErrConfigCreated
+		}
+		return nil, fmt.Errorf("Failed to read config: %w", err)
 	}
 
-	var config Config
 	if err := json.Unmarshal(file, &config); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to read config json: %w", err)
+	}
+
+	if err := config.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
 	return &config, nil
+}
+
+func (c *Config) Validate() error {
+	var errs []error
+
+	if len(c.Token) != 72 {
+		errs = append(errs, errors.New("token is missing"))
+	}
+
+	if c.GuildID == 0 {
+		errs = append(errs, errors.New("guild_id cannot be 0"))
+	}
+
+	if c.WelcomeChannelID == 0 {
+		errs = append(errs, errors.New("welcome_channel_id cannot be 0"))
+	}
+
+	return errors.Join(errs...)
 }

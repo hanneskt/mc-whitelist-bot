@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -10,13 +11,18 @@ import (
 )
 
 func main() {
-	config, err := config.LoadConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
+		if errors.Is(err, config.ErrConfigCreated) {
+			slog.Info("Generated empty config.json. Please fill it out and restart.")
+			os.Exit(0)
+		}
+
 		slog.Error("Failed to load config", "error", err)
-		panic(err)
+		os.Exit(1)
 	}
 
-	discord.StartBot(config)
+	discord.StartBot(cfg)
 
 	// Keep the application running until you press CTRL+C
 	s := make(chan os.Signal, 1)
