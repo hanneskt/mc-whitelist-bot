@@ -19,22 +19,18 @@ type Bot struct {
 	Logger *slog.Logger
 }
 
-func (b *Bot) Start(config *config.Config, logger *slog.Logger) (*bot.Client, error) {
-	client, err := disgo.New(config.Token,
-		bot.WithLogger(logger),
+func (self *Bot) Start() (*bot.Client, error) {
+	client, err := disgo.New(self.Config.Token,
+		bot.WithLogger(self.Logger),
 		bot.WithGatewayConfigOpts(
 			gateway.WithIntents(
 				gateway.IntentGuilds,       // which guild
 				gateway.IntentGuildMembers, // join events
 			),
 		),
-
-		// new member event
-		bot.WithEventListenerFunc(b.OnMemberJoin),
-		// slash command event
-		bot.WithEventListenerFunc(HandleCommands),
-		// modal submit event
-		bot.WithEventListenerFunc(HandleModals),
+		bot.WithEventListenerFunc(self.OnMemberJoin),
+		bot.WithEventListenerFunc(self.OnApplicationCommand),
+		bot.WithEventListenerFunc(self.OnModalSubmit),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to initialize disgo client: %w", err)
@@ -48,21 +44,21 @@ func (b *Bot) Start(config *config.Config, logger *slog.Logger) (*bot.Client, er
 	}
 
 	// register commands
-	_, err = client.Rest.SetGuildCommands(client.ApplicationID, config.GuildID, Commands())
+	_, err = client.Rest.SetGuildCommands(client.ApplicationID, self.Config.GuildID, Commands())
 	if err != nil {
-		logger.Error("Error registering commands", "error", err)
+		self.Logger.Error("Error registering commands", "error", err)
 	} else {
-		logger.Info("Successfully registered commands!")
+		self.Logger.Info("Successfully registered commands!")
 	}
 
 	return client, nil
 }
 
-func (b *Bot) OnMemberJoin(e *events.GuildMemberJoin) {
-	_, err := e.Client().Rest.CreateMessage(b.Config.WelcomeChannelID, discord.MessageCreate{
+func (self *Bot) OnMemberJoin(e *events.GuildMemberJoin) {
+	_, err := e.Client().Rest.CreateMessage(self.Config.WelcomeChannelID, discord.MessageCreate{
 		Content: fmt.Sprintf("Welcome to the server, <@%s>!", e.Member.User.ID),
 	})
 	if err != nil {
-		b.Logger.Error("Failed to send welcome message", "error", err)
+		self.Logger.Error("Failed to send welcome message", "error", err)
 	}
 }

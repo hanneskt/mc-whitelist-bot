@@ -29,7 +29,7 @@ func main() {
 		Config: cfg,
 		Logger: logger,
 	}
-	client, err := bot.Start(cfg, logger)
+	client, err := bot.Start()
 	if err != nil {
 		logger.Error("Bot failed to start", "error", err)
 		os.Exit(1)
