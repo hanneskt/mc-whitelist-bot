@@ -8,10 +8,10 @@ import (
 	"github.com/disgoorg/disgo/events"
 )
 
-func WhitelistModal() discord.ModalCreate {
+func WhitelistModal(serverName string) discord.ModalCreate {
 	return discord.ModalCreate{
 		CustomID: "whitelist_form",
-		Title:    "Whitelist Request",
+		Title:    fmt.Sprintf("%s Whitelist Request", serverName),
 		Components: []discord.LayoutComponent{
 			discord.TextDisplayComponent{
 				Content: "Fill in this form to get whitelisted on our **minecraft servers**!\n",

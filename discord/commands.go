@@ -24,14 +24,14 @@ func (b *Bot) OnApplicationCommand(e *events.ApplicationCommandInteractionCreate
 	b.Logger.Info("Handling the command", "command", e.Data.CommandName())
 	switch e.Data.CommandName() {
 	case "form":
-		formCommand(e)
+		formCommand(e, b.Config.ServerName)
 	case "hello":
 		helloCommand(e)
 	}
 }
 
-func formCommand(e *events.ApplicationCommandInteractionCreate) {
-	err := e.Modal(WhitelistModal())
+func formCommand(e *events.ApplicationCommandInteractionCreate, serverName string) {
+	err := e.Modal(WhitelistModal(serverName))
 	if err != nil {
 		slog.Error("Error replying to form command", "error", err)
 	}

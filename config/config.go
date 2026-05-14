@@ -17,6 +17,7 @@ type Config struct {
 	Token            string       `json:"token"`
 	GuildID          snowflake.ID `json:"guild_id"`
 	WelcomeChannelID snowflake.ID `json:"welcome_channel_id"`
+	ServerName       string       `json:"server_name"`
 }
 
 func LoadConfig() (*Config, error) {
