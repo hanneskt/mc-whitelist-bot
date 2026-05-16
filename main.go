@@ -11,6 +11,7 @@ import (
 	"whitelistbot/config"
 	"whitelistbot/discord"
 	"whitelistbot/ptero"
+	"whitelistbot/service"
 )
 
 func main() {
@@ -32,11 +33,13 @@ func main() {
 		slog.Error("Failed to start Pterodactyl Client", "error", err)
 	}
 
-	// start bot
+	whitelistSvc := service.NewWhitelistService(logger, pteroClient)
+
+	// make bot
 	bot := discord.Bot{
-		Config:      cfg,
-		Logger:      logger,
-		PteroClient: pteroClient,
+		Config:       cfg,
+		Logger:       logger,
+		WhitelistSvc: whitelistSvc,
 	}
 
 	err = bot.Start()

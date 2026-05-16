@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 	"whitelistbot/config"
-	"whitelistbot/ptero"
+	"whitelistbot/service"
 
 	"github.com/disgoorg/disgo"
 	"github.com/disgoorg/disgo/bot"
@@ -19,8 +19,9 @@ type Bot struct {
 	Config *config.Config
 	Logger *slog.Logger
 
-	PteroClient *ptero.PteroClient
-	botClient   *bot.Client
+	WhitelistSvc *service.WhitelistService
+
+	botClient *bot.Client
 }
 
 func (b *Bot) Start() error {

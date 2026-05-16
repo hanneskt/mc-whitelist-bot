@@ -51,12 +51,12 @@ func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 			b.Logger.Error("Empty name")
 		}
 
-		err := b.PteroClient.WhitelistPlayer(name)
+		err := b.WhitelistSvc.WhitelistPlayer(name)
 		if err != nil {
 			b.Logger.Error("Could not whitelist player", "error", err)
 			e.CreateMessage(discord.MessageCreate{
 				Content: "Something went wrong whitelisting you :(",
-			})
+			}.WithEphemeral(true))
 			return
 		}
 
