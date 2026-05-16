@@ -37,7 +37,7 @@ func WhitelistModal(serverName string) discord.ModalCreate {
 				Label:       "Who invited you?",
 				Description: "",
 				Component: discord.TextInputComponent{
-					CustomID: "who_invite",
+					CustomID: "invited_by",
 					Style:    discord.TextInputStyleShort,
 				},
 			},
@@ -48,13 +48,14 @@ func WhitelistModal(serverName string) discord.ModalCreate {
 func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 	if e.Data.CustomID == "whitelist_form" {
 		name := e.Data.Text("minecraft_name")
-		if name == "" {
-			b.Logger.Error("Empty name")
-		}
+		country := e.Data.Text("country")
+		invited_by := e.Data.Text("invited_by")
 
 		err := b.WhitelistSvc.WhitelistPlayer(service.PlayerToWhitelist{
 			McUsername:  name,
 			DiscordUuid: e.User().ID.String(),
+			Country:     country,
+			InvitedBy:   invited_by,
 		})
 		if err != nil {
 			b.Logger.Error("Could not whitelist player", "error", err)
