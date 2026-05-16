@@ -54,7 +54,7 @@ func WhitelistModal(serverName string) discord.ModalCreate {
 					Required:    true,
 					MinLength:   &min_len,
 					MaxLength:   32,
-					Placeholder: "Kameran",
+					Placeholder: "Kamaran",
 				},
 			},
 		},
@@ -108,7 +108,7 @@ func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 			// if already whitelisted
 			if errors.Is(err, service.AlreadyWhitelisted) {
 				e.CreateMessage(discord.MessageCreate{
-					Content: `You seem te already be whitelisted, go play! (or contact one of the admins if you can't)`,
+					Content: `You seem to already be whitelisted, go play! (or contact one of the admins if you can't)`,
 				}.WithEphemeral(true))
 				return
 			}
