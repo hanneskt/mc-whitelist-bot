@@ -3,6 +3,7 @@ package discord
 import (
 	"fmt"
 	"log/slog"
+	"whitelistbot/service"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -51,7 +52,10 @@ func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 			b.Logger.Error("Empty name")
 		}
 
-		err := b.WhitelistSvc.WhitelistPlayer(name)
+		err := b.WhitelistSvc.WhitelistPlayer(service.PlayerToWhitelist{
+			McUsername:  name,
+			DiscordUuid: e.User().ID.String(),
+		})
 		if err != nil {
 			b.Logger.Error("Could not whitelist player", "error", err)
 			e.CreateMessage(discord.MessageCreate{

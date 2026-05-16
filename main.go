@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"database/sql"
+	_ "embed"
 	"errors"
 	"log/slog"
 	"os"
@@ -9,10 +11,16 @@ import (
 	"syscall"
 	"time"
 	"whitelistbot/config"
+	"whitelistbot/db"
 	"whitelistbot/discord"
 	"whitelistbot/ptero"
 	"whitelistbot/service"
+
+	_ "modernc.org/sqlite"
 )
+
+//go:embed sql/schema.sql
+var ddl string
 
 func main() {
 	logger := slog.Default()
@@ -33,7 +41,12 @@ func main() {
 		slog.Error("Failed to start Pterodactyl Client", "error", err)
 	}
 
-	whitelistSvc := service.NewWhitelistService(logger, pteroClient)
+	ctx := context.Background()
+	database, err := sql.Open("sqlite", "test.db")
+	database.ExecContext(ctx, ddl)
+	queries := db.New(database)
+
+	whitelistSvc := service.NewWhitelistService(logger, pteroClient, queries)
 
 	// make bot
 	bot := discord.Bot{

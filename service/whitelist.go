@@ -1,56 +1,93 @@
 package service
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
+	"whitelistbot/db"
 	"whitelistbot/ptero"
 )
 
 type WhitelistService struct {
-	logger *slog.Logger
-	ptero  *ptero.PteroClient
+	logger  *slog.Logger
+	ptero   *ptero.PteroClient
+	queries *db.Queries
 }
 
 var InvalidName = errors.New("invalid minecraft username")
 
-func NewWhitelistService(l *slog.Logger, p *ptero.PteroClient) *WhitelistService {
+func NewWhitelistService(l *slog.Logger, p *ptero.PteroClient, q *db.Queries) *WhitelistService {
 	return &WhitelistService{
-		logger: l,
-		ptero:  p,
+		logger:  l,
+		ptero:   p,
+		queries: q,
 	}
 }
 
-func (s *WhitelistService) WhitelistPlayer(username string) error { // TODO: return a whitelist result
-	if !s.UsernameValid(username) {
-		return InvalidName
+type PlayerToWhitelist struct {
+	McUsername  string
+	DiscordUuid string
+	Country     string
+	InvitedBy   string
+}
+
+func (s *WhitelistService) WhitelistPlayer(player PlayerToWhitelist) error { // TODO: return a whitelist result
+	playerInfo, err := s.UsernameValid(player.McUsername)
+	if err != nil {
+		return err
 	}
 
-	err := s.ptero.WhitelistPlayerCommand(username)
+	err = s.ptero.WhitelistPlayerCommand(player.McUsername)
 	if err != nil {
 		return fmt.Errorf("sending whitelist command to server failed: %w", err)
 	}
 
+	dbPlayer, err := s.queries.CreatePlayer(context.Background(), db.CreatePlayerParams{
+		McUuid:      playerInfo.Uuid,
+		McUsername:  playerInfo.Name,
+		DiscordUuid: player.DiscordUuid,
+		Whitelisted: true,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to save player to database: %w", err)
+	}
+	s.logger.Info("Saved player to the database", "player", dbPlayer)
+
 	return nil
 }
 
-func (s *WhitelistService) UsernameValid(username string) bool {
+type MojangPlayerInfo struct {
+	Uuid string `json:"id"`
+	Name string `json:"name"`
+}
+
+func (s *WhitelistService) UsernameValid(username string) (*MojangPlayerInfo, error) {
 	resp, err := http.Get(fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", username))
 	if err != nil {
 		s.logger.Warn("Mojang api returned an error", "error", err)
-		return false
+		return nil, err
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == 200 {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error reading response body of mojang request")
+		}
+
+		var playerInfo MojangPlayerInfo
+		json.Unmarshal(body, &playerInfo)
+		return &playerInfo, nil
+	}
+
 	if resp.StatusCode == 404 {
 		s.logger.Warn("Username not found", "username", username)
-		return false
+		return nil, InvalidName
 	}
 
-	if resp.StatusCode == 200 {
-		return true
-	}
-
-	return false
+	return nil, fmt.Errorf("mojang api returned status code: %d", resp.StatusCode)
 }
