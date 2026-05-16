@@ -6,6 +6,7 @@ require (
 	github.com/davidarkless/go-pterodactyl v0.1.0
 	github.com/disgoorg/disgo v0.19.3
 	github.com/disgoorg/snowflake/v2 v2.0.3
+	modernc.org/sqlite v1.50.1
 )
 
 require (
@@ -25,7 +26,6 @@ require (
 	modernc.org/libc v1.72.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.50.1 // indirect
 )
 
-replace github.com/davidarkless/go-pterodactyl => ../go-pterodactyl
+replace github.com/davidarkless/go-pterodactyl => github.com/hanneskt/go-pterodactyl v0.2.0
