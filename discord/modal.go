@@ -126,8 +126,8 @@ func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 		}
 
 		err = e.CreateMessage(discord.MessageCreate{
-			Content: fmt.Sprintf("Hello %s, thanks for submitting the form!", name),
-		})
+			Content: fmt.Sprintf("Hello %s, thanks for submitting the form!\n You are now whitelisted! Have fun!", name),
+		}.WithEphemeral(true))
 		if err != nil {
 			b.Logger.Error("Error replying to form submit", "error", err)
 		}
