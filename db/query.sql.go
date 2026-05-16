@@ -11,9 +11,9 @@ import (
 
 const createPlayer = `-- name: CreatePlayer :one
 INSERT INTO players (
-    mc_uuid, mc_username, discord_uuid, whitelisted
+    mc_uuid, mc_username, discord_uuid, country, invited_by, whitelisted
 ) VALUES (
-    ?, ?, ?, ?
+    ?, ?, ?, ?, ?, ?
 ) RETURNING id, mc_uuid, mc_username, discord_uuid, country, invited_by, whitelisted, left_server
 `
 
@@ -21,6 +21,8 @@ type CreatePlayerParams struct {
 	McUuid      string
 	McUsername  string
 	DiscordUuid string
+	Country     string
+	InvitedBy   string
 	Whitelisted bool
 }
 
@@ -29,6 +31,8 @@ func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Pla
 		arg.McUuid,
 		arg.McUsername,
 		arg.DiscordUuid,
+		arg.Country,
+		arg.InvitedBy,
 		arg.Whitelisted,
 	)
 	var i Player

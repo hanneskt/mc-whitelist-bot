@@ -50,6 +50,8 @@ func (s *WhitelistService) WhitelistPlayer(player PlayerToWhitelist) error { // 
 		McUuid:      playerInfo.Uuid,
 		McUsername:  playerInfo.Name,
 		DiscordUuid: player.DiscordUuid,
+		Country:     player.Country,
+		InvitedBy:   player.InvitedBy,
 		Whitelisted: true,
 	})
 	if err != nil {
