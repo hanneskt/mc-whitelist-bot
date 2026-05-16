@@ -14,6 +14,7 @@ var ErrConfigCreated = errors.New("config file created; please edit and restart"
 const configPath = "config.json"
 
 type Config struct {
+	WebhookUrl        string       `json:"webhook_url"`
 	Token             string       `json:"token"`
 	GuildID           snowflake.ID `json:"guild_id"`
 	WelcomeChannelID  snowflake.ID `json:"welcome_channel_id"`

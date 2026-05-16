@@ -23,7 +23,6 @@ import (
 var ddl string
 
 func main() {
-	logger := slog.Default()
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -35,6 +34,17 @@ func main() {
 		slog.Error("Failed to load config", "error", err)
 		os.Exit(1)
 	}
+
+	baseHandler := slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	})
+
+	webhookHandler, err := discord.NewWebhookLogger(baseHandler, cfg.WebhookUrl)
+	if err != nil {
+		panic("Failed to create webhook logger: " + err.Error())
+	}
+
+	logger := slog.New(webhookHandler)
 
 	pteroClient, err := ptero.New(*cfg, *logger)
 	if err != nil {

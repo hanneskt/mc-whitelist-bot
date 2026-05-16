@@ -59,6 +59,8 @@ func (b *Bot) Start() error {
 		b.Logger.Info("Successfully registered commands!")
 	}
 
+	b.Logger.Info("QBot2 is running")
+
 	return nil
 }
 
