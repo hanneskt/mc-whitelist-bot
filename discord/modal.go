@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"regexp"
 	"whitelistbot/service"
 
 	"github.com/disgoorg/disgo/discord"
@@ -59,11 +60,20 @@ func WhitelistModal(serverName string) discord.ModalCreate {
 	}
 }
 
+var validNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
+
 func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 	b.Logger.Info("Handling a form submit", "form", e.Data.CustomID, "user", e.Member().EffectiveName())
 
 	if e.Data.CustomID == "whitelist_form" {
 		name := e.Data.Text("minecraft_name")
+		if !validNameRegex.MatchString(name) {
+			e.CreateMessage(discord.MessageCreate{
+				Content: fmt.Sprintf(`Your name "%s" doesn't seem te be a valid Minecraft name, can you check and try again?`, name),
+			}.WithEphemeral(true))
+			return
+		}
+
 		country := e.Data.Text("country")
 		invited_by := e.Data.Text("invited_by")
 
