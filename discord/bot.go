@@ -64,7 +64,11 @@ func (b *Bot) Start() error {
 	return nil
 }
 
-func (b *Bot) Stop(ctx context.Context) {
+func (b *Bot) Stop() {
+	b.Logger.Info("Stopping bot")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	if b.botClient != nil {
 		b.Logger.Info("Shutting down bot client")
 		b.botClient.Close(ctx)

@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 	"whitelistbot/config"
 	"whitelistbot/db"
 	"whitelistbot/discord"
@@ -70,15 +69,10 @@ func main() {
 		logger.Error("Bot failed to start", "error", err)
 		os.Exit(1)
 	}
+	defer bot.Stop()
 
 	// Keep the application running until you press CTRL+C
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-s
-
-	// stop bot
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	bot.Stop(shutdownCtx)
 }
