@@ -1,6 +1,7 @@
 package discord
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"whitelistbot/service"
@@ -10,6 +11,7 @@ import (
 )
 
 func WhitelistModal(serverName string) discord.ModalCreate {
+	min_len := 3
 	return discord.ModalCreate{
 		CustomID: "whitelist_form",
 		Title:    fmt.Sprintf("%s Whitelist Request", serverName),
@@ -21,24 +23,36 @@ func WhitelistModal(serverName string) discord.ModalCreate {
 				Label:       "Minecraft Username",
 				Description: "The name you have in Minecraft",
 				Component: discord.TextInputComponent{
-					CustomID: "minecraft_name",
-					Style:    discord.TextInputStyleShort,
+					CustomID:    "minecraft_name",
+					Style:       discord.TextInputStyleShort,
+					MinLength:   &min_len, // this needs to be a pointer
+					MaxLength:   16,
+					Required:    true,
+					Placeholder: "Santri",
 				},
 			},
 			discord.LabelComponent{
 				Label:       "Country",
 				Description: "Where do you currently live?",
 				Component: discord.TextInputComponent{
-					CustomID: "country",
-					Style:    discord.TextInputStyleShort,
+					CustomID:    "country",
+					Style:       discord.TextInputStyleShort,
+					Required:    true,
+					MinLength:   &min_len,
+					MaxLength:   32,
+					Placeholder: "Germany",
 				},
 			},
 			discord.LabelComponent{
 				Label:       "Who invited you?",
 				Description: "",
 				Component: discord.TextInputComponent{
-					CustomID: "invited_by",
-					Style:    discord.TextInputStyleShort,
+					CustomID:    "invited_by",
+					Style:       discord.TextInputStyleShort,
+					Required:    true,
+					MinLength:   &min_len,
+					MaxLength:   32,
+					Placeholder: "Kameran",
 				},
 			},
 		},
@@ -47,6 +61,7 @@ func WhitelistModal(serverName string) discord.ModalCreate {
 
 func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 	b.Logger.Info("Handling a form submit", "form", e.Data.CustomID, "user", e.Member().EffectiveName())
+
 	if e.Data.CustomID == "whitelist_form" {
 		name := e.Data.Text("minecraft_name")
 		country := e.Data.Text("country")
@@ -60,8 +75,18 @@ func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 		})
 		if err != nil {
 			b.Logger.Error("Could not whitelist player", "error", err)
+
+			// if the name was invalid
+			if errors.Is(err, service.InvalidName) {
+				e.CreateMessage(discord.MessageCreate{
+					Content: fmt.Sprintf(`Your name "%s" doesn't seem te be a valid Minecraft name, can you check and try again?`, name),
+				}.WithEphemeral(true))
+				return
+			}
+
+			// otherwise
 			e.CreateMessage(discord.MessageCreate{
-				Content: "Something went wrong whitelisting you :(",
+				Content: "Something went wrong whitelisting you :(\nContact one of the admins (CEO role)",
 			}.WithEphemeral(true))
 			return
 		}
