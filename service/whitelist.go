@@ -14,13 +14,13 @@ import (
 
 type WhitelistService struct {
 	logger  *slog.Logger
-	ptero   *ptero.PteroClient
+	ptero   *ptero.PteroManager
 	queries *db.Queries
 }
 
 var InvalidName = errors.New("invalid minecraft username")
 
-func NewWhitelistService(l *slog.Logger, p *ptero.PteroClient, q *db.Queries) *WhitelistService {
+func NewWhitelistService(l *slog.Logger, p *ptero.PteroManager, q *db.Queries) *WhitelistService {
 	return &WhitelistService{
 		logger:  l,
 		ptero:   p,
