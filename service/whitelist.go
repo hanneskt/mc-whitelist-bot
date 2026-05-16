@@ -47,7 +47,7 @@ func (s *WhitelistService) WhitelistPlayer(player PlayerToWhitelist) error { // 
 		return err
 	}
 
-	err = s.ptero.WhitelistPlayerCommand(player.McUsername)
+	err = s.ptero.WhitelistPlayerCommand(playerInfo.Name)
 	if err != nil {
 		return fmt.Errorf("sending whitelist command to server failed: %w", err)
 	}
