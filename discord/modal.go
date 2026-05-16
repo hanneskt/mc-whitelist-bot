@@ -3,12 +3,13 @@ package discord
 import (
 	"errors"
 	"fmt"
-	"log/slog"
+	"math/rand"
 	"regexp"
 	"whitelistbot/service"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
+	"github.com/disgoorg/snowflake/v2"
 )
 
 func WhitelistModal(serverName string) discord.ModalCreate {
@@ -61,6 +62,16 @@ func WhitelistModal(serverName string) discord.ModalCreate {
 }
 
 var validNameRegex = regexp.MustCompile(`^[a-zA-Z0-9_]+$`)
+var randomRoleOptions = []snowflake.ID{
+	snowflake.MustParse("904874505736978452"),
+	snowflake.MustParse("904874558044114994"),
+	snowflake.MustParse("904874587106467870"),
+	snowflake.MustParse("904874632253947946"),
+	snowflake.MustParse("904874686851215370"),
+	snowflake.MustParse("904874729255624765"),
+	snowflake.MustParse("904874772310143026"),
+	snowflake.MustParse("904874810226647060"),
+}
 
 func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 	b.Logger.Info("Handling a form submit", "form", e.Data.CustomID, "user", e.Member().EffectiveName())
@@ -101,11 +112,24 @@ func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 			return
 		}
 
+		// assign roles
+		if guildID := e.GuildID(); guildID != nil {
+			specificRoleID := snowflake.MustParse("757613585982685343")
+			if err := e.Client().Rest.AddMemberRole(*guildID, e.User().ID, specificRoleID); err != nil {
+				b.Logger.Error("Failed to assign specific role", "error", err)
+			}
+
+			chosenRandomRoleID := randomRoleOptions[rand.Intn(len(randomRoleOptions))]
+			if err := e.Client().Rest.AddMemberRole(*guildID, e.User().ID, chosenRandomRoleID); err != nil {
+				b.Logger.Error("Failed to assign random role", "error", err)
+			}
+		}
+
 		err = e.CreateMessage(discord.MessageCreate{
 			Content: fmt.Sprintf("Hello %s, thanks for submitting the form!", name),
 		})
 		if err != nil {
-			b.Logger.Error("Error replying to form submit", slog.Any("error", err))
+			b.Logger.Error("Error replying to form submit", "error", err)
 		}
 	}
 }

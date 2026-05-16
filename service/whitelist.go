@@ -19,6 +19,7 @@ type WhitelistService struct {
 }
 
 var InvalidName = errors.New("invalid minecraft username")
+var AlreadyWhitelisted = errors.New("already whitelisted")
 
 func NewWhitelistService(l *slog.Logger, p *ptero.PteroManager, q *db.Queries) *WhitelistService {
 	return &WhitelistService{
@@ -36,6 +37,11 @@ type PlayerToWhitelist struct {
 }
 
 func (s *WhitelistService) WhitelistPlayer(player PlayerToWhitelist) error { // TODO: return a whitelist result
+	_, err := s.queries.GetPlayerByDiscordUuid(context.Background(), player.DiscordUuid)
+	if err == nil {
+		return AlreadyWhitelisted
+	}
+
 	playerInfo, err := s.UsernameValid(player.McUsername)
 	if err != nil {
 		return err
