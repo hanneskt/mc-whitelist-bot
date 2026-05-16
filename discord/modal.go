@@ -105,6 +105,14 @@ func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 				return
 			}
 
+			// if already whitelisted
+			if errors.Is(err, service.AlreadyWhitelisted) {
+				e.CreateMessage(discord.MessageCreate{
+					Content: `You seem te already be whitelisted, go play! (or contact one of the admins if you can't)`,
+				}.WithEphemeral(true))
+				return
+			}
+
 			// otherwise
 			e.CreateMessage(discord.MessageCreate{
 				Content: "Something went wrong whitelisting you :(\nContact one of the admins (CEO role)",
@@ -126,7 +134,7 @@ func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 		}
 
 		err = e.CreateMessage(discord.MessageCreate{
-			Content: fmt.Sprintf("Hello %s, thanks for submitting the form!\n You are now whitelisted! Have fun!", name),
+			Content: fmt.Sprintf("Hello %s, thanks for submitting the form!\nYou are now whitelisted! Have fun!", name),
 		}.WithEphemeral(true))
 		if err != nil {
 			b.Logger.Error("Error replying to form submit", "error", err)
