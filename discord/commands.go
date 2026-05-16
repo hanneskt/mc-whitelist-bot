@@ -1,6 +1,7 @@
 package discord
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/disgoorg/disgo/discord"
@@ -38,5 +39,7 @@ func formCommand(e *events.ApplicationCommandInteractionCreate, serverName strin
 }
 
 func helloCommand(e *events.ApplicationCommandInteractionCreate) {
-
+	e.CreateMessage(discord.MessageCreate{
+		Content: fmt.Sprintf("Hello <@%s>", e.User().ID),
+	})
 }
