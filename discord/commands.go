@@ -22,7 +22,7 @@ func Commands() []discord.ApplicationCommandCreate {
 }
 
 func (b *Bot) OnApplicationCommand(e *events.ApplicationCommandInteractionCreate) {
-	b.Logger.Info("Handling the command", "command", e.Data.CommandName())
+	b.Logger.Info("Handling the command", "command", e.Data.CommandName(), "user", e.Member().EffectiveName())
 	switch e.Data.CommandName() {
 	case "form":
 		formCommand(e, b.Config.ServerName)

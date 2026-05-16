@@ -46,6 +46,7 @@ func WhitelistModal(serverName string) discord.ModalCreate {
 }
 
 func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
+	b.Logger.Info("Handling a form submit", "form", e.Data.CustomID, "user", e.Member().EffectiveName())
 	if e.Data.CustomID == "whitelist_form" {
 		name := e.Data.Text("minecraft_name")
 		country := e.Data.Text("country")

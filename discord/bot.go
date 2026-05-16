@@ -70,6 +70,7 @@ func (b *Bot) Stop(ctx context.Context) {
 }
 
 func (b *Bot) OnMemberJoin(e *events.GuildMemberJoin) {
+	b.Logger.Info("Handling new member", "user", e.Member.EffectiveName())
 	_, err := e.Client().Rest.CreateMessage(b.Config.WelcomeChannelID, discord.MessageCreate{
 		Content: fmt.Sprintf("Welcome to the server, <@%s>!", e.Member.User.ID),
 	})
