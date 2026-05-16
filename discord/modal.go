@@ -126,11 +126,13 @@ func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 			if err := e.Client().Rest.AddMemberRole(*guildID, e.User().ID, specificRoleID); err != nil {
 				b.Logger.Error("Failed to assign specific role", "error", err)
 			}
+			b.Logger.Info("Added whitelisted role", "role", specificRoleID, "user", e.Member().EffectiveName())
 
 			chosenRandomRoleID := randomRoleOptions[rand.Intn(len(randomRoleOptions))]
 			if err := e.Client().Rest.AddMemberRole(*guildID, e.User().ID, chosenRandomRoleID); err != nil {
 				b.Logger.Error("Failed to assign random role", "error", err)
 			}
+			b.Logger.Info("Added color role", "role", chosenRandomRoleID, "user", e.Member().EffectiveName())
 		}
 
 		err = e.CreateMessage(discord.MessageCreate{
