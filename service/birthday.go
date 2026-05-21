@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -21,8 +20,15 @@ func NewBirthdayService(l *slog.Logger, q *db.Queries) *BirthdayService {
 	}
 }
 
-func (s *BirthdayService) SetBirthday(discordId string, day, month int) error {
-	_, err := s.queries.CreateBirthday(context.Background(), db.CreateBirthdayParams{
+var ErrBirthdayAlreadySet = errors.New("birthday already set")
+
+func (s *BirthdayService) SetBirthday(discordId string, day int, month int) error {
+	birthday, err := s.GetBirthdayById(discordId)
+	if birthday != nil {
+		return ErrBirthdayAlreadySet
+	}
+
+	_, err = s.queries.CreateBirthday(context.Background(), db.CreateBirthdayParams{
 		DiscordUuid: discordId,
 		Day:         int64(day),
 		Month:       int64(month),
@@ -40,15 +46,9 @@ type Birthday struct {
 	Month int
 }
 
-var ErrBirthdayNotFound = errors.New("birthday not found")
-
 func (s *BirthdayService) GetBirthdayById(discordId string) (*Birthday, error) {
 	birthday, err := s.queries.GetBirthdayById(context.Background(), discordId)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrBirthdayNotFound
-		}
-
 		return nil, fmt.Errorf("failed to get birthday: %w", err)
 	}
 

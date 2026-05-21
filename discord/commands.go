@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"whitelistbot/service"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -136,9 +137,17 @@ func (b *Bot) birthdayCommand(e *events.ApplicationCommandInteractionCreate) err
 	case "set":
 		day := e.SlashCommandInteractionData().Int("day")
 		month := e.SlashCommandInteractionData().Int("month")
-		if err := b.BirthdaySvc.SetBirthday(e.User().ID.String(), day, month); err != nil {
+
+		err := b.BirthdaySvc.SetBirthday(e.User().ID.String(), day, month)
+		if err != nil {
+			if errors.Is(err, service.ErrBirthdayAlreadySet) {
+				return e.CreateMessage(discord.NewMessageCreate().
+					WithContent("You already set your birthday! You can remove it with /birthday remove").
+					WithEphemeral(true))
+			}
 			return err
 		}
+
 		e.CreateMessage(discord.NewMessageCreate().WithContent("Your birthday was saved!").WithEphemeral(true))
 	case "get":
 		month := e.SlashCommandInteractionData().Int("month")
