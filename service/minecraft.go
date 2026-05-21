@@ -99,3 +99,7 @@ func (s *MinecraftService) UsernameValid(username string) (*MojangPlayerInfo, er
 
 	return nil, fmt.Errorf("mojang api returned status code: %d", resp.StatusCode)
 }
+
+func (s *MinecraftService) OnlinePlayers(ctx context.Context) ([]string, error) {
+	return s.ptero.OnlinePlayers(ctx)
+}

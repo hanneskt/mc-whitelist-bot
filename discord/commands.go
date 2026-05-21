@@ -1,8 +1,11 @@
 package discord
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
+	"strings"
+	"time"
 
 	"github.com/disgoorg/disgo/discord"
 	"github.com/disgoorg/disgo/events"
@@ -15,6 +18,10 @@ func Commands() []discord.ApplicationCommandCreate {
 			Description: "Opens the application form",
 		},
 		discord.SlashCommandCreate{
+			Name:        "players",
+			Description: "Lists players on the Survival server",
+		},
+		discord.SlashCommandCreate{
 			Name:        "hello",
 			Description: "Says hello",
 		},
@@ -23,23 +30,52 @@ func Commands() []discord.ApplicationCommandCreate {
 
 func (b *Bot) OnApplicationCommand(e *events.ApplicationCommandInteractionCreate) {
 	b.Logger.Info("Handling the command", "command", e.Data.CommandName(), "user", e.Member().EffectiveName())
+	var err error
+
 	switch e.Data.CommandName() {
 	case "form":
-		formCommand(e, b.Config.DiscordServerName)
+		err = b.formCommand(e)
+	case "players":
+		err = b.playersCommand(e)
 	case "hello":
-		helloCommand(e)
+		err = b.helloCommand(e)
 	}
-}
-
-func formCommand(e *events.ApplicationCommandInteractionCreate, serverName string) {
-	err := e.Modal(WhitelistModal(serverName))
 	if err != nil {
-		slog.Error("Error replying to form command", "error", err)
+		slog.Error("Error replying to command", "command", e.Data.CommandName(), "error", err)
 	}
 }
 
-func helloCommand(e *events.ApplicationCommandInteractionCreate) {
+func (b *Bot) formCommand(e *events.ApplicationCommandInteractionCreate) error {
+	return e.Modal(WhitelistModal(b.Config.DiscordServerName))
+}
+
+func (b *Bot) playersCommand(e *events.ApplicationCommandInteractionCreate) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	players, err := b.MinecraftSvc.OnlinePlayers(ctx)
+	if err != nil {
+		return err
+	}
+
+	var sb strings.Builder
+	for _, player := range players {
+		fmt.Fprintf(&sb, "• %s\n", player)
+	}
+
+	e.CreateMessage(discord.NewMessageCreate().AddEmbeds(discord.Embed{
+		Title:       fmt.Sprintf("Survival Online Players (%d)", len(players)),
+		Description: sb.String(),
+		Color:       0x00FF00,
+	}).WithEphemeral(true))
+
+	return nil
+}
+
+func (b *Bot) helloCommand(e *events.ApplicationCommandInteractionCreate) error {
 	e.CreateMessage(discord.MessageCreate{
 		Content: fmt.Sprintf("Hello <@%s>", e.User().ID),
 	})
+
+	return nil
 }

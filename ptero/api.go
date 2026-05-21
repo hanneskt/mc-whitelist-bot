@@ -61,3 +61,35 @@ func (c *PteroManager) WhitelistPlayerCommand(username string) error {
 	c.logger.Info("Player whitelisted successfully", "username", username)
 	return nil
 }
+
+type PlayerListResponse struct {
+	Max    int `json:"max"`
+	Online int `json:"online"`
+	Sample []struct {
+		Id     string `json:"id"`
+		Name   string `json:"name"`
+		Avatar string `json:"avatar"`
+	} `json:"sample"`
+}
+
+func (c *PteroManager) OnlinePlayers(ctx context.Context) ([]string, error) {
+	server := c.servers[0] // just use the first server for this
+
+	request, err := server.client.NewRequest(ctx, "GET", fmt.Sprintf("/api/client/servers/%s/minecraft-players", server.identifier), nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request for minecraft players: %w", err)
+	}
+
+	var players PlayerListResponse
+	_, err = server.client.Do(ctx, request, &players)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get minecraft players: %w", err)
+	}
+
+	names := make([]string, 0, len(players.Sample)) // an empty slice, but already allocated
+	for _, p := range players.Sample {
+		names = append(names, p.Name)
+	}
+
+	return names, nil
+}
