@@ -55,7 +55,8 @@ func (b *Bot) Start() error {
 	// register commands
 	_, err = b.botClient.Rest.SetGuildCommands(b.botClient.ApplicationID, b.Config.GuildID, Commands())
 	if err != nil {
-		b.Logger.Error("Error registering commands", "error", err)
+		b.Stop()
+		return fmt.Errorf("error registering commands: %w", err)
 	} else {
 		b.Logger.Info("Successfully registered commands!")
 	}
