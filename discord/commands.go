@@ -41,6 +41,7 @@ func (b *Bot) OnApplicationCommand(e *events.ApplicationCommandInteractionCreate
 		err = b.helloCommand(e)
 	}
 	if err != nil {
+		e.CreateMessage(discord.NewMessageCreate().WithContent("There was an error running the command :(").WithEphemeral(true))
 		slog.Error("Error replying to command", "command", e.Data.CommandName(), "error", err)
 	}
 }
