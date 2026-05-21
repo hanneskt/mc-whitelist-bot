@@ -9,6 +9,32 @@ import (
 	"context"
 )
 
+const createBirthday = `-- name: CreateBirthday :one
+INSERT INTO birthdays (
+    discord_uuid, day, month
+) VALUES (
+    ?,?,?
+) RETURNING id, discord_uuid, day, month
+`
+
+type CreateBirthdayParams struct {
+	DiscordUuid string
+	Day         int64
+	Month       int64
+}
+
+func (q *Queries) CreateBirthday(ctx context.Context, arg CreateBirthdayParams) (Birthday, error) {
+	row := q.db.QueryRowContext(ctx, createBirthday, arg.DiscordUuid, arg.Day, arg.Month)
+	var i Birthday
+	err := row.Scan(
+		&i.ID,
+		&i.DiscordUuid,
+		&i.Day,
+		&i.Month,
+	)
+	return i, err
+}
+
 const createPlayer = `-- name: CreatePlayer :one
 INSERT INTO players (
     mc_uuid, mc_username, discord_uuid, country, invited_by, whitelisted
@@ -47,6 +73,116 @@ func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Pla
 		&i.LeftServer,
 	)
 	return i, err
+}
+
+const deleteBirthday = `-- name: DeleteBirthday :exec
+DELETE FROM birthdays WHERE discord_uuid = ?
+`
+
+func (q *Queries) DeleteBirthday(ctx context.Context, discordUuid string) error {
+	_, err := q.db.ExecContext(ctx, deleteBirthday, discordUuid)
+	return err
+}
+
+const getBirthdays = `-- name: GetBirthdays :many
+SELECT id, discord_uuid, day, month FROM birthdays
+`
+
+func (q *Queries) GetBirthdays(ctx context.Context) ([]Birthday, error) {
+	rows, err := q.db.QueryContext(ctx, getBirthdays)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Birthday
+	for rows.Next() {
+		var i Birthday
+		if err := rows.Scan(
+			&i.ID,
+			&i.DiscordUuid,
+			&i.Day,
+			&i.Month,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getBirthdaysForDate = `-- name: GetBirthdaysForDate :many
+SELECT id, discord_uuid, day, month FROM birthdays WHERE day = ? AND month = ?
+`
+
+type GetBirthdaysForDateParams struct {
+	Day   int64
+	Month int64
+}
+
+func (q *Queries) GetBirthdaysForDate(ctx context.Context, arg GetBirthdaysForDateParams) ([]Birthday, error) {
+	rows, err := q.db.QueryContext(ctx, getBirthdaysForDate, arg.Day, arg.Month)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Birthday
+	for rows.Next() {
+		var i Birthday
+		if err := rows.Scan(
+			&i.ID,
+			&i.DiscordUuid,
+			&i.Day,
+			&i.Month,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getBirthdaysForMonth = `-- name: GetBirthdaysForMonth :many
+SELECT id, discord_uuid, day, month FROM birthdays WHERE month = ? ORDER BY day ASC
+`
+
+func (q *Queries) GetBirthdaysForMonth(ctx context.Context, month int64) ([]Birthday, error) {
+	rows, err := q.db.QueryContext(ctx, getBirthdaysForMonth, month)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Birthday
+	for rows.Next() {
+		var i Birthday
+		if err := rows.Scan(
+			&i.ID,
+			&i.DiscordUuid,
+			&i.Day,
+			&i.Month,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const getPlayerByDiscordUuid = `-- name: GetPlayerByDiscordUuid :one

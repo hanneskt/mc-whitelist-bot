@@ -2,8 +2,8 @@ package discord
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"log/slog"
 	"strings"
 	"time"
 
@@ -25,6 +25,48 @@ func Commands() []discord.ApplicationCommandCreate {
 			Name:        "hello",
 			Description: "Says hello",
 		},
+		discord.SlashCommandCreate{
+			Name:        "birthday",
+			Description: "Commands relating to the birthdaycommands",
+			Options: []discord.ApplicationCommandOption{
+				discord.ApplicationCommandOptionSubCommand{
+					Name:        "set",
+					Description: "Set you birthday so the bot can announce your birthday!",
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionInt{
+							Name:        "day",
+							Description: "The day of the month of your birthday",
+							Required:    true,
+							MinValue:    intPtr(1),
+							MaxValue:    intPtr(31),
+						},
+						discord.ApplicationCommandOptionInt{
+							Name:        "month",
+							Description: "The month of your birthday, as a number",
+							Required:    true,
+							MinValue:    intPtr(1),
+							MaxValue:    intPtr(12),
+						},
+					},
+				},
+				discord.ApplicationCommandOptionSubCommand{
+					Name:        "get",
+					Description: "Get the birthdays for a month",
+					Options: []discord.ApplicationCommandOption{
+						discord.ApplicationCommandOptionInt{
+							Name:        "month",
+							Description: "The month to get birthdays for",
+							MinValue:    intPtr(1),
+							MaxValue:    intPtr(12),
+						},
+					},
+				},
+				discord.ApplicationCommandOptionSubCommand{
+					Name:        "remove",
+					Description: "Remove your birthday",
+				},
+			},
+		},
 	}
 }
 
@@ -39,10 +81,14 @@ func (b *Bot) OnApplicationCommand(e *events.ApplicationCommandInteractionCreate
 		err = b.playersCommand(e)
 	case "hello":
 		err = b.helloCommand(e)
+	case "birthday":
+		err = b.birthdayCommand(e)
+	default:
+		err = errors.New("No handler for this command")
 	}
 	if err != nil {
 		e.CreateMessage(discord.NewMessageCreate().WithContent("There was an error running the command :(").WithEphemeral(true))
-		slog.Error("Error replying to command", "command", e.Data.CommandName(), "error", err)
+		b.Logger.Error("Error replying to command", "command", e.Data.CommandName(), "error", err)
 	}
 }
 
@@ -79,4 +125,39 @@ func (b *Bot) helloCommand(e *events.ApplicationCommandInteractionCreate) error 
 	})
 
 	return nil
+}
+
+func (b *Bot) birthdayCommand(e *events.ApplicationCommandInteractionCreate) error {
+	if e.SlashCommandInteractionData().SubCommandName == nil {
+		return errors.New("birthday subcommand required")
+	}
+
+	var err error
+	switch *e.SlashCommandInteractionData().SubCommandName {
+	case "set":
+		day := e.SlashCommandInteractionData().Int("day")
+		month := e.SlashCommandInteractionData().Int("month")
+		err = b.BirthdaySvc.SetBirthday(e.User().ID.String(), day, month)
+		e.CreateMessage(discord.NewMessageCreate().WithContent("Your birthday was saved!").WithEphemeral(true))
+	case "get":
+		month := e.SlashCommandInteractionData().Int("month")
+
+		if month == 0 {
+			month = int(time.Now().Month())
+		}
+
+		_, err = b.BirthdaySvc.GetBirthdaysForMonth(month)
+		e.CreateMessage(discord.NewMessageCreate().WithContent("TODO").WithEphemeral(true))
+	case "remove":
+		err = b.BirthdaySvc.DeleteBirthday(e.User().ID.String())
+		e.CreateMessage(discord.NewMessageCreate().WithContent("Your birthday was deleted!").WithEphemeral(true))
+	default:
+		err = errors.New("no such birthday subcommand")
+	}
+
+	return err
+}
+
+func intPtr(i int) *int {
+	return &i
 }

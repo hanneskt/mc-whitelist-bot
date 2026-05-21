@@ -4,6 +4,13 @@
 
 package db
 
+type Birthday struct {
+	ID          int64
+	DiscordUuid string
+	Day         int64
+	Month       int64
+}
+
 type Player struct {
 	ID          int64
 	McUuid      string

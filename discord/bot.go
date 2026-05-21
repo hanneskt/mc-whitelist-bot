@@ -20,6 +20,7 @@ type Bot struct {
 	Logger *slog.Logger
 
 	MinecraftSvc *service.MinecraftService
+	BirthdaySvc  *service.BirthdayService
 
 	botClient *bot.Client
 }

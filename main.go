@@ -51,17 +51,24 @@ func main() {
 	}
 
 	ctx := context.Background()
-	database, err := sql.Open("sqlite", "test.db")
+	database, err := sql.Open("sqlite", "test.db?_pragma=foreign_keys(1)")
+	if err != nil {
+		logger.Error("Failed to open database", "error", err)
+		os.Exit(1)
+	}
+
 	database.ExecContext(ctx, ddl)
 	queries := db.New(database)
 
 	minecraftSvc := service.NewMinecraftService(logger, pteroClient, queries)
+	birthdaySvc := service.NewBirthdayService(logger, queries)
 
 	// make bot
 	bot := discord.Bot{
 		Config:       cfg,
 		Logger:       logger,
 		MinecraftSvc: minecraftSvc,
+		BirthdaySvc:  birthdaySvc,
 	}
 
 	err = bot.Start()

@@ -8,3 +8,22 @@ INSERT INTO players (
 ) VALUES (
     ?, ?, ?, ?, ?, ?
 ) RETURNING *;
+
+-- name: CreateBirthday :one
+INSERT INTO birthdays (
+    discord_uuid, day, month
+) VALUES (
+    ?,?,?
+) RETURNING *;
+
+-- name: GetBirthdays :many
+SELECT * FROM birthdays;
+
+-- name: DeleteBirthday :exec
+DELETE FROM birthdays WHERE discord_uuid = ?;
+
+-- name: GetBirthdaysForDate :many
+SELECT * FROM birthdays WHERE day = ? AND month = ?;
+
+-- name: GetBirthdaysForMonth :many
+SELECT * FROM birthdays WHERE month = ? ORDER BY day ASC;
