@@ -12,7 +12,7 @@ import (
 	"whitelistbot/ptero"
 )
 
-type WhitelistService struct {
+type MinecraftService struct {
 	logger  *slog.Logger
 	ptero   *ptero.PteroManager
 	queries *db.Queries
@@ -21,8 +21,8 @@ type WhitelistService struct {
 var InvalidName = errors.New("invalid minecraft username")
 var AlreadyWhitelisted = errors.New("already whitelisted")
 
-func NewWhitelistService(l *slog.Logger, p *ptero.PteroManager, q *db.Queries) *WhitelistService {
-	return &WhitelistService{
+func NewMinecraftService(l *slog.Logger, p *ptero.PteroManager, q *db.Queries) *MinecraftService {
+	return &MinecraftService{
 		logger:  l,
 		ptero:   p,
 		queries: q,
@@ -36,7 +36,7 @@ type PlayerToWhitelist struct {
 	InvitedBy   string
 }
 
-func (s *WhitelistService) WhitelistPlayer(player PlayerToWhitelist) error { // TODO: return a whitelist result
+func (s *MinecraftService) WhitelistPlayer(player PlayerToWhitelist) error { // TODO: return a whitelist result
 	_, err := s.queries.GetPlayerByDiscordUuid(context.Background(), player.DiscordUuid)
 	if err == nil {
 		return AlreadyWhitelisted
@@ -73,7 +73,7 @@ type MojangPlayerInfo struct {
 	Name string `json:"name"`
 }
 
-func (s *WhitelistService) UsernameValid(username string) (*MojangPlayerInfo, error) {
+func (s *MinecraftService) UsernameValid(username string) (*MojangPlayerInfo, error) {
 	resp, err := http.Get(fmt.Sprintf("https://api.mojang.com/users/profiles/minecraft/%s", username))
 	if err != nil {
 		s.logger.Warn("Mojang api returned an error", "error", err)

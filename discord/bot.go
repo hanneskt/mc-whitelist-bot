@@ -19,7 +19,7 @@ type Bot struct {
 	Config *config.Config
 	Logger *slog.Logger
 
-	WhitelistSvc *service.WhitelistService
+	MinecraftSvc *service.MinecraftService
 
 	botClient *bot.Client
 }

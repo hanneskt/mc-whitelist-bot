@@ -88,7 +88,7 @@ func (b *Bot) OnModalSubmit(e *events.ModalSubmitInteractionCreate) {
 		country := e.Data.Text("country")
 		invited_by := e.Data.Text("invited_by")
 
-		err := b.WhitelistSvc.WhitelistPlayer(service.PlayerToWhitelist{
+		err := b.MinecraftSvc.WhitelistPlayer(service.PlayerToWhitelist{
 			McUsername:  name,
 			DiscordUuid: e.User().ID.String(),
 			Country:     country,

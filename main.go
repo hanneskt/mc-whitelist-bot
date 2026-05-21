@@ -55,13 +55,13 @@ func main() {
 	database.ExecContext(ctx, ddl)
 	queries := db.New(database)
 
-	whitelistSvc := service.NewWhitelistService(logger, pteroClient, queries)
+	minecraftSvc := service.NewMinecraftService(logger, pteroClient, queries)
 
 	// make bot
 	bot := discord.Bot{
 		Config:       cfg,
 		Logger:       logger,
-		WhitelistSvc: whitelistSvc,
+		MinecraftSvc: minecraftSvc,
 	}
 
 	err = bot.Start()
