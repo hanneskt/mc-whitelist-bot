@@ -133,11 +133,13 @@ func (b *Bot) birthdayCommand(e *events.ApplicationCommandInteractionCreate) err
 		return errors.New("birthday subcommand required")
 	}
 
+	b.Logger.Info("handling birthday subcommand", "subcommand", *e.SlashCommandInteractionData().SubCommandName)
 	switch *e.SlashCommandInteractionData().SubCommandName {
 	case "set":
 		day := e.SlashCommandInteractionData().Int("day")
 		month := e.SlashCommandInteractionData().Int("month")
 
+		b.Logger.Info("setting birthday", "day", day, "month", month)
 		err := b.BirthdaySvc.SetBirthday(e.User().ID.String(), day, month)
 		if err != nil {
 			if errors.Is(err, service.ErrBirthdayAlreadySet) {
@@ -156,6 +158,7 @@ func (b *Bot) birthdayCommand(e *events.ApplicationCommandInteractionCreate) err
 			month = int(time.Now().Month())
 		}
 
+		b.Logger.Info("getting birthday", "month", month)
 		birthdays, err := b.BirthdaySvc.GetBirthdaysForMonth(month)
 		if err != nil {
 			return err
@@ -177,6 +180,7 @@ func (b *Bot) birthdayCommand(e *events.ApplicationCommandInteractionCreate) err
 			Color:       0x00FF00,
 		}).WithEphemeral(true))
 	case "remove":
+		b.Logger.Info("removing birthday")
 		if err := b.BirthdaySvc.DeleteBirthday(e.User().ID.String()); err != nil {
 			return err
 		}
