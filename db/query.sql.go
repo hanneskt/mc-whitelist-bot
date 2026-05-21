@@ -84,6 +84,22 @@ func (q *Queries) DeleteBirthday(ctx context.Context, discordUuid string) error 
 	return err
 }
 
+const getBirthdayById = `-- name: GetBirthdayById :one
+SELECT id, discord_uuid, day, month FROM birthdays WHERE discord_uuid = ?
+`
+
+func (q *Queries) GetBirthdayById(ctx context.Context, discordUuid string) (Birthday, error) {
+	row := q.db.QueryRowContext(ctx, getBirthdayById, discordUuid)
+	var i Birthday
+	err := row.Scan(
+		&i.ID,
+		&i.DiscordUuid,
+		&i.Day,
+		&i.Month,
+	)
+	return i, err
+}
+
 const getBirthdays = `-- name: GetBirthdays :many
 SELECT id, discord_uuid, day, month FROM birthdays
 `

@@ -53,10 +53,25 @@ func (s *BirthdayService) GetBirthdaysForDate(day, month int) error {
 	return nil
 }
 
-func (s *BirthdayService) GetBirthdaysForMonth(month int) ([]db.Birthday, error) {
-	birthdays, err := s.queries.GetBirthdaysForMonth(context.Background(), int64(month))
+type Birthday struct {
+	ID    string
+	Day   int
+	Month int
+}
+
+func (s *BirthdayService) GetBirthdaysForMonth(month int) ([]Birthday, error) {
+	dbBirthdays, err := s.queries.GetBirthdaysForMonth(context.Background(), int64(month))
 	if err != nil {
 		return nil, fmt.Errorf("failed to get birthdays for month %d: %w", month, err)
+	}
+
+	birthdays := make([]Birthday, 0, len(dbBirthdays)) // an empty slice, but already allocated
+	for _, b := range dbBirthdays {
+		birthdays = append(birthdays, Birthday{
+			ID:    b.DiscordUuid,
+			Day:   int(b.Day),
+			Month: int(b.Month),
+		})
 	}
 
 	return birthdays, nil

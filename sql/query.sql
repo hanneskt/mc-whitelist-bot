@@ -16,6 +16,9 @@ INSERT INTO birthdays (
     ?,?,?
 ) RETURNING *;
 
+-- name: GetBirthdayById :one
+SELECT * FROM birthdays WHERE discord_uuid = ?;
+
 -- name: GetBirthdays :many
 SELECT * FROM birthdays;
 

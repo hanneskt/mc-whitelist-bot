@@ -132,12 +132,13 @@ func (b *Bot) birthdayCommand(e *events.ApplicationCommandInteractionCreate) err
 		return errors.New("birthday subcommand required")
 	}
 
-	var err error
 	switch *e.SlashCommandInteractionData().SubCommandName {
 	case "set":
 		day := e.SlashCommandInteractionData().Int("day")
 		month := e.SlashCommandInteractionData().Int("month")
-		err = b.BirthdaySvc.SetBirthday(e.User().ID.String(), day, month)
+		if err := b.BirthdaySvc.SetBirthday(e.User().ID.String(), day, month); err != nil {
+			return err
+		}
 		e.CreateMessage(discord.NewMessageCreate().WithContent("Your birthday was saved!").WithEphemeral(true))
 	case "get":
 		month := e.SlashCommandInteractionData().Int("month")
@@ -146,16 +147,36 @@ func (b *Bot) birthdayCommand(e *events.ApplicationCommandInteractionCreate) err
 			month = int(time.Now().Month())
 		}
 
-		_, err = b.BirthdaySvc.GetBirthdaysForMonth(month)
-		e.CreateMessage(discord.NewMessageCreate().WithContent("TODO").WithEphemeral(true))
+		birthdays, err := b.BirthdaySvc.GetBirthdaysForMonth(month)
+		if err != nil {
+			return err
+		}
+
+		var sb strings.Builder
+		if len(birthdays) == 0 {
+			sb.WriteString("_No birthdays this month._")
+		} else {
+			for _, bday := range birthdays {
+				fmt.Fprintf(&sb, "**%d** - <@%s>\n", bday.Day, bday.ID)
+			}
+		}
+
+		monthName := time.Month(month).String()
+		return e.CreateMessage(discord.NewMessageCreate().AddEmbeds(discord.Embed{
+			Title:       fmt.Sprintf("Birthdays in %s", monthName),
+			Description: sb.String(),
+			Color:       0x00FF00,
+		}).WithEphemeral(true))
 	case "remove":
-		err = b.BirthdaySvc.DeleteBirthday(e.User().ID.String())
+		if err := b.BirthdaySvc.DeleteBirthday(e.User().ID.String()); err != nil {
+			return err
+		}
 		e.CreateMessage(discord.NewMessageCreate().WithContent("Your birthday was deleted!").WithEphemeral(true))
 	default:
-		err = errors.New("no such birthday subcommand")
+		return errors.New("no such birthday subcommand")
 	}
 
-	return err
+	return nil
 }
 
 func intPtr(i int) *int {
