@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 	"whitelistbot/db"
@@ -32,6 +34,31 @@ func (s *BirthdayService) SetBirthday(discordId string, day, month int) error {
 	return nil
 }
 
+type Birthday struct {
+	ID    string
+	Day   int
+	Month int
+}
+
+var ErrBirthdayNotFound = errors.New("birthday not found")
+
+func (s *BirthdayService) GetBirthdayById(discordId string) (*Birthday, error) {
+	birthday, err := s.queries.GetBirthdayById(context.Background(), discordId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrBirthdayNotFound
+		}
+
+		return nil, fmt.Errorf("failed to get birthday: %w", err)
+	}
+
+	return &Birthday{
+		ID:    birthday.DiscordUuid,
+		Day:   int(birthday.Day),
+		Month: int(birthday.Month),
+	}, nil
+}
+
 func (s *BirthdayService) DeleteBirthday(discordId string) error {
 	err := s.queries.DeleteBirthday(context.Background(), discordId)
 	if err != nil {
@@ -51,12 +78,6 @@ func (s *BirthdayService) GetBirthdaysForDate(day, month int) error {
 	}
 
 	return nil
-}
-
-type Birthday struct {
-	ID    string
-	Day   int
-	Month int
 }
 
 func (s *BirthdayService) GetBirthdaysForMonth(month int) ([]Birthday, error) {
