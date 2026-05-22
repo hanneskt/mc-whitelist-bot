@@ -68,16 +68,25 @@ func (s *BirthdayService) DeleteBirthday(discordId string) error {
 	return nil
 }
 
-func (s *BirthdayService) GetBirthdaysForDate(day, month int) error {
-	_, err := s.queries.GetBirthdaysForDate(context.Background(), db.GetBirthdaysForDateParams{
+func (s *BirthdayService) GetBirthdaysForDate(day, month int) ([]Birthday, error) {
+	dbBirthdays, err := s.queries.GetBirthdaysForDate(context.Background(), db.GetBirthdaysForDateParams{
 		Day:   int64(day),
 		Month: int64(month),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to get birthdays for date %d/%d: %w", day, month, err)
+		return nil, fmt.Errorf("failed to get birthdays for date %d/%d: %w", day, month, err)
 	}
 
-	return nil
+	birthdays := make([]Birthday, 0, len(dbBirthdays))
+	for _, b := range dbBirthdays {
+		birthdays = append(birthdays, Birthday{
+			ID:    b.DiscordUuid,
+			Day:   int(b.Day),
+			Month: int(b.Month),
+		})
+	}
+
+	return birthdays, nil
 }
 
 func (s *BirthdayService) GetBirthdaysForMonth(month int) ([]Birthday, error) {
