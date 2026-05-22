@@ -18,6 +18,7 @@ type Config struct {
 	Token             string       `json:"token"`
 	GuildID           snowflake.ID `json:"guild_id"`
 	WelcomeChannelID  snowflake.ID `json:"welcome_channel_id"`
+	BirthdayChannelID snowflake.ID `json:"birthday_channel_id"`
 	DiscordServerName string       `json:"discord_server_name"`
 
 	PteroServers []PteroServer `json:"servers"`

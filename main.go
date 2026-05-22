@@ -78,6 +78,8 @@ func main() {
 	}
 	defer bot.Stop()
 
+	bot.StartBirthdayAnnouncer()
+
 	// Keep the application running until you press CTRL+C
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
